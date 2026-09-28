@@ -1,0 +1,37 @@
+[
+  {
+    "text": "我上周报修的电机,工单号 WO20260701123,修完又报故障了,需要重新处理",
+    "expected": {
+      "ticket_id": "WO20260701123",
+      "request_type": "报修"
+    }
+  },
+  {
+    "text": "设备型号选错了,咨询下能不能换型,单号MH20260705888",
+    "expected": {
+      "ticket_id": "MH20260705888",
+      "request_type": "咨询"
+    }
+  },
+  {
+    "text": "变频器用了三天就过流报警,帮我报修,工单号忘了回头补",
+    "expected": {
+      "ticket_id": null,
+      "request_type": "报修"
+    }
+  },
+  {
+    "text": "运维响应太差了,工单拖了一周没人处理,我要投诉",
+    "expected": {
+      "ticket_id": null,
+      "request_type": "投诉"
+    }
+  },
+  {
+    "text": "设备在保修期内,想问下后续保养要注意啥",
+    "expected": {
+      "ticket_id": null,
+      "request_type": "咨询"
+    }
+  }
+]

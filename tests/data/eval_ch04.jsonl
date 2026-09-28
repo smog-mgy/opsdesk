@@ -1,0 +1,75 @@
+{"id": "A1", "bucket": "A_policy", "query": "设备报修有哪些渠道", "expect_section": ["设备报修有哪些渠道"], "expect_points": ["运维热线 8000", "企业微信", "当班工程师"], "should_refuse": false}
+{"id": "A2", "bucket": "A_policy", "query": "报修时需要提供哪些信息", "expect_section": ["设备报修有哪些渠道"], "expect_points": ["设备编号", "故障现象", "所在产线"], "should_refuse": false}
+{"id": "A3", "bucket": "A_policy", "query": "普通故障报修后多久有人响应", "expect_section": ["报修后多久有人响应"], "expect_points": ["P3", "1 个工作日"], "should_refuse": false}
+{"id": "A4", "bucket": "A_policy", "query": "影响生产的故障多久响应", "expect_section": ["报修后多久有人响应"], "expect_points": ["P2", "2 小时内"], "should_refuse": false}
+{"id": "A5", "bucket": "A_policy", "query": "紧急停机或安全风险多久响应", "expect_section": ["报修后多久有人响应"], "expect_points": ["P1", "15 分钟内"], "should_refuse": false}
+{"id": "A6", "bucket": "A_policy", "query": "夜间设备坏了有人处理吗", "expect_section": ["夜间和节假日有人值班吗"], "expect_points": ["7×24", "三班倒", "当班工程师"], "should_refuse": false}
+{"id": "A7", "bucket": "A_policy", "query": "节假日提交的工单怎么处理", "expect_section": ["夜间和节假日有人值班吗"], "expect_points": ["P2/P3 顺延", "下一个工作日"], "should_refuse": false}
+{"id": "A8", "bucket": "A_policy", "query": "设备报修诊断收费吗", "expect_section": ["报修是否收费"], "expect_points": ["诊断不收费", "备件费用按合同"], "should_refuse": false}
+{"id": "A9", "bucket": "A_policy", "query": "巡检服务包括哪些内容", "expect_section": ["巡检服务包括什么"], "expect_points": ["外观检查", "运行参数记录", "隐患登记"], "should_refuse": false}
+{"id": "A10", "bucket": "A_policy", "query": "标准维保合同包含哪些服务", "expect_section": ["维保合同包含哪些内容"], "expect_points": ["定期巡检", "故障响应", "备件供应", "年度检修"], "should_refuse": false}
+{"id": "A11", "bucket": "A_policy", "query": "工单有哪些状态", "expect_section": ["工单有哪些状态"], "expect_points": ["待派单", "处理中", "待配件", "已解决", "已关闭"], "should_refuse": false}
+{"id": "A12", "bucket": "A_policy", "query": "工单优先级怎么定义", "expect_section": ["工单优先级怎么定义"], "expect_points": ["P1 紧急", "P2 高", "P3 普通"], "should_refuse": false}
+{"id": "A13", "bucket": "A_policy", "query": "工单处理流程是什么", "expect_section": ["工单处理流程是什么"], "expect_points": ["待派单", "处理中", "已解决", "已关闭"], "should_refuse": false}
+{"id": "A14", "bucket": "A_policy", "query": "工单在什么条件下关闭", "expect_section": ["工单关闭有什么要求"], "expect_points": ["申请部门确认", "重开工单"], "should_refuse": false}
+{"id": "A15", "bucket": "A_policy", "query": "工单信息填错了能修改吗", "expect_section": ["工单信息填错怎么改"], "expect_points": ["联系值班员", "备注说明"], "should_refuse": false}
+{"id": "A16", "bucket": "A_policy", "query": "谁可以查看工单进度", "expect_section": ["谁可以查看工单进度"], "expect_points": ["申请人", "部门负责人"], "should_refuse": false}
+{"id": "A17", "bucket": "A_policy", "query": "P1 紧急故障的服务承诺是什么", "expect_section": ["P1 紧急故障服务承诺"], "expect_points": ["15 分钟电话响应", "30 分钟到场", "4 小时处理结果"], "should_refuse": false}
+{"id": "A18", "bucket": "A_policy", "query": "P2 高优先级故障的承诺是什么", "expect_section": ["P2 高优先级服务承诺"], "expect_points": ["2 小时内响应", "1 个工作日内解决", "待配件"], "should_refuse": false}
+{"id": "A19", "bucket": "A_policy", "query": "P3 普通故障的处理时限", "expect_section": ["P3 普通服务承诺"], "expect_points": ["1 个工作日响应", "3 个工作日解决"], "should_refuse": false}
+{"id": "A20", "bucket": "A_policy", "query": "维保服务覆盖哪些设备", "expect_section": ["服务范围说明"], "expect_points": ["生产设备", "办公设备不在合同范围"], "should_refuse": false}
+{"id": "A21", "bucket": "A_policy", "query": "响应时效从什么时候开始算", "expect_section": ["响应时效的计算口径"], "expect_points": ["工单提交时刻起算", "节假日顺延"], "should_refuse": false}
+{"id": "A22", "bucket": "A_policy", "query": "常用备件多久可以领用", "expect_section": ["备件供应承诺"], "expect_points": ["常备库存", "30 分钟内"], "should_refuse": false}
+{"id": "A23", "bucket": "A_policy", "query": "设备检修前必须做什么", "expect_section": ["检修前必须做什么"], "expect_points": ["停电", "验电", "挂牌上锁"], "should_refuse": false}
+{"id": "A24", "bucket": "A_policy", "query": "验电的正确方法是什么", "expect_section": ["验电的正确方法"], "expect_points": ["先验证验电笔功能", "逐相验电", "相应电压等级"], "should_refuse": false}
+{"id": "A25", "bucket": "A_policy", "query": "哪些作业必须办工作票", "expect_section": ["什么情况下必须办工作票"], "expect_points": ["高压设备检修", "动火作业", "有限空间", "临时用电"], "should_refuse": false}
+{"id": "A26", "bucket": "A_policy", "query": "变频器检修开盖前要注意什么", "expect_section": ["变频器检修特别提醒"], "expect_points": ["等待 5 分钟", "测量直流母线电压", "安全值以下"], "should_refuse": false}
+{"id": "A27", "bucket": "A_policy", "query": "检修完成后恢复送电的流程", "expect_section": ["恢复送电的流程"], "expect_points": ["人员撤离", "摘除警示牌", "观察 10 分钟"], "should_refuse": false}
+{"id": "A28", "bucket": "A_policy", "query": "发现电气隐患应该怎么处理", "expect_section": ["发现隐患怎么上报"], "expect_points": ["上报当班运维工程师", "先切断电源"], "should_refuse": false}
+{"id": "A29", "bucket": "A_policy", "query": "设备编号怎么查询", "expect_section": ["设备编号怎么查"], "expect_points": ["铭牌二维码", "企业微信设备台账"], "should_refuse": false}
+{"id": "A30", "bucket": "A_policy", "query": "设备台账在哪里可以查", "expect_section": ["设备台账在哪里查"], "expect_points": ["企业微信设备台账", "按名称/编号/产线筛选"], "should_refuse": false}
+{"id": "B1", "bucket": "B_model", "query": "M-1001 三相异步电机的额定参数", "expect_section": ["M-1001 三相异步电机"], "expect_points": ["11kW", "380V", "22A", "1460rpm"], "should_refuse": false}
+{"id": "B2", "bucket": "B_model", "query": "PLC-2002 是什么型号的 PLC", "expect_section": ["PLC-2002 西门子 S7-1200"], "expect_points": ["S7-1200", "CPU 1214C"], "should_refuse": false}
+{"id": "B3", "bucket": "B_model", "query": "VFD-3005 变频器适配多大的电机", "expect_section": ["VFD-3005 变频器"], "expect_points": ["11kW 电机", "M-1001"], "should_refuse": false}
+{"id": "B4", "bucket": "B_model", "query": "TS-4001 温度传感器是什么类型", "expect_section": ["TS-4001 温度传感器"], "expect_points": ["PT100", "4-20mA", "两线制"], "should_refuse": false}
+{"id": "B5", "bucket": "B_model", "query": "PU-1002 空压机的排气压力是多少", "expect_section": ["PU-1002 空压机"], "expect_points": ["0.8MPa", "3.2m³/min"], "should_refuse": false}
+{"id": "B6", "bucket": "B_model", "query": "电机通电后不转怎么排查", "expect_section": ["电机通电后不转怎么办"], "expect_points": ["断路器", "接触器", "缺相", "绕组阻值"], "should_refuse": false}
+{"id": "B7", "bucket": "B_model", "query": "电机过热报警常见原因有哪些", "expect_section": ["电机过热报警怎么排查"], "expect_points": ["过载", "散热不良", "电压不平衡", "频繁启停"], "should_refuse": false}
+{"id": "B8", "bucket": "B_model", "query": "变频器报过流故障怎么处理", "expect_section": ["变频器报过流故障怎么办"], "expect_points": ["启动段", "运行段", "电机绝缘", "加减速时间"], "should_refuse": false}
+{"id": "B9", "bucket": "B_model", "query": "PLC 报警灯亮了怎么排查", "expect_section": ["PLC 报故障报警灯怎么排查"], "expect_points": ["RUN/STOP/ERROR", "诊断缓冲区", "24V 电源"], "should_refuse": false}
+{"id": "B10", "bucket": "B_model", "query": "温度传感器无读数怎么排查", "expect_section": ["温度传感器无读数怎么排查"], "expect_points": ["变送器供电", "短接信号端", "分度表"], "should_refuse": false}
+{"id": "B11", "bucket": "B_model", "query": "空压机压力上不去怎么办", "expect_section": ["空压机压力上不去怎么办"], "expect_points": ["卸载频繁", "进气滤芯", "皮带打滑", "泄压阀"], "should_refuse": false}
+{"id": "B12", "bucket": "B_model", "query": "电机绕组怎么测量判断好坏", "expect_section": ["电机通电后不转怎么办"], "expect_points": ["三相阻值平衡", "对地绝缘"], "should_refuse": false}
+{"id": "C1", "bucket": "C_colloquial", "query": "设备坏了该找谁报修啊", "expect_section": ["设备报修有哪些渠道"], "expect_points": ["运维热线", "企业微信"], "should_refuse": false}
+{"id": "C2", "bucket": "C_colloquial", "query": "停机了着急,多久能来人", "expect_section": ["报修后多久有人响应"], "expect_points": ["P1", "15 分钟内"], "should_refuse": false}
+{"id": "C3", "bucket": "C_colloquial", "query": "大半夜的有人管不", "expect_section": ["夜间和节假日有人值班吗"], "expect_points": ["三班倒", "当班工程师"], "should_refuse": false}
+{"id": "C4", "bucket": "C_colloquial", "query": "电机烫得不行是咋回事", "expect_section": ["电机过热报警怎么排查"], "expect_points": ["过载", "散热"], "should_refuse": false}
+{"id": "C5", "bucket": "C_colloquial", "query": "变频器老跳闸报过流", "expect_section": ["变频器报过流故障怎么办"], "expect_points": ["电机绝缘", "负载"], "should_refuse": false}
+{"id": "C6", "bucket": "C_colloquial", "query": "PLC 那个报警灯亮了咋整", "expect_section": ["PLC 报故障报警灯怎么排查"], "expect_points": ["诊断缓冲区", "24V 电源"], "should_refuse": false}
+{"id": "C7", "bucket": "C_colloquial", "query": "传感器读数一直是零", "expect_section": ["温度传感器无读数怎么排查"], "expect_points": ["供电", "短接"], "should_refuse": false}
+{"id": "C8", "bucket": "C_colloquial", "query": "空压机打不上压了", "expect_section": ["空压机压力上不去怎么办"], "expect_points": ["滤芯", "皮带"], "should_refuse": false}
+{"id": "C9", "bucket": "C_colloquial", "query": "找你们修要钱不", "expect_section": ["报修是否收费"], "expect_points": ["诊断不收费", "备件按合同"], "should_refuse": false}
+{"id": "C10", "bucket": "C_colloquial", "query": "修完了啥时候算结束", "expect_section": ["工单关闭有什么要求"], "expect_points": ["申请部门确认", "已关闭"], "should_refuse": false}
+{"id": "D1", "bucket": "D_absent", "query": "你们卖不卖新设备,能给我个报价单吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D2", "bucket": "D_absent", "query": "能帮我重新设计车间布局吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D3", "bucket": "D_absent", "query": "有没有电气工程师考证培训", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D4", "bucket": "D_absent", "query": "能远程接管我们厂的 PLC 程序吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D5", "bucket": "D_absent", "query": "旧设备能回收折价吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D6", "bucket": "D_absent", "query": "你们有 App 可以下载吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D7", "bucket": "D_absent", "query": "设备能不能租着用,按天算钱", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D8", "bucket": "D_absent", "query": "能帮我们代维别的工厂的设备吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D9", "bucket": "D_absent", "query": "报废设备怎么申请手续", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D10", "bucket": "D_absent", "query": "能推荐一款空压机品牌吗,哪个好用", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D11", "bucket": "D_absent", "query": "有没有夜间保安巡逻服务", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D12", "bucket": "D_absent", "query": "你们做不做消防年检", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D13", "bucket": "D_absent", "query": "能不能帮我们写一份点检表模板", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D14", "bucket": "D_absent", "query": "你们有没有自己研发的运维软件卖", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "D15", "bucket": "D_absent", "query": "能安排师傅来我们厂驻场一个月吗", "expect_section": [], "expect_points": [], "should_refuse": true}
+{"id": "E1", "bucket": "E_multi", "query": "电机过热还停机了,算不算紧急,多久能来人", "expect_section": ["电机过热报警怎么排查", "报修后多久有人响应"], "expect_sections_all": [["电机过热报警怎么排查"], ["报修后多久有人响应"]], "expect_points": ["过载", "停机", "P1", "15 分钟内"], "should_refuse": false}
+{"id": "E2", "bucket": "E_multi", "query": "报修要收费吗,报完多久有人来", "expect_section": ["报修是否收费", "报修后多久有人响应"], "expect_sections_all": [["报修是否收费"], ["报修后多久有人响应"]], "expect_points": ["诊断不收费", "P3", "1 个工作日"], "should_refuse": false}
+{"id": "E3", "bucket": "E_multi", "query": "夜班设备坏了,普通故障还是紧急处理", "expect_section": ["夜间和节假日有人值班吗", "报修后多久有人响应"], "expect_sections_all": [["夜间和节假日有人值班吗"], ["报修后多久有人响应"]], "expect_points": ["三班倒", "紧急随时可报", "普通顺延"], "should_refuse": false}
+{"id": "E4", "bucket": "E_multi", "query": "变频器过流怎么自查,自查不好怎么报修", "expect_section": ["变频器报过流故障怎么办", "设备报修有哪些渠道"], "expect_sections_all": [["变频器报过流故障怎么办"], ["设备报修有哪些渠道"]], "expect_points": ["电机绝缘", "负载", "企业微信报修"], "should_refuse": false}
+{"id": "E5", "bucket": "E_multi", "query": "传感器坏了走什么流程修,多久能修好", "expect_section": ["温度传感器无读数怎么排查", "P3 普通服务承诺"], "expect_sections_all": [["温度传感器无读数怎么排查"], ["P3 普通服务承诺"]], "expect_points": ["供电", "短接信号端", "3 个工作日"], "should_refuse": false}
+{"id": "E6", "bucket": "E_multi", "query": "检修前要做什么准备,变频器开盖注意什么", "expect_section": ["检修前必须做什么", "变频器检修特别提醒"], "expect_sections_all": [["检修前必须做什么"], ["变频器检修特别提醒"]], "expect_points": ["挂牌上锁", "等待 5 分钟", "母线电压"], "should_refuse": false}
+{"id": "E7", "bucket": "E_multi", "query": "工单填错了能改吗,进度在哪里看", "expect_section": ["工单信息填错怎么改", "谁可以查看工单进度"], "expect_sections_all": [["工单信息填错怎么改"], ["谁可以查看工单进度"]], "expect_points": ["联系值班员", "企业微信我的工单"], "should_refuse": false}
+{"id": "E8", "bucket": "E_multi", "query": "巡检和维保合同有什么区别,各包含什么", "expect_section": ["巡检服务包括什么", "维保合同包含哪些内容"], "expect_sections_all": [["巡检服务包括什么"], ["维保合同包含哪些内容"]], "expect_points": ["周/月/季巡检", "故障响应", "备件供应"], "should_refuse": false}

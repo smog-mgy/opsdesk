@@ -1,0 +1,9 @@
+{
+  "ran_at": "2026-09-28T04:17:46",
+  "checked": 44,
+  "mismatch": 0,
+  "passed": true,
+  "onnx_path": "data\\ch10\\onnx\\model.onnx",
+  "onnx_bytes": 409333274,
+  "opset": 17
+}

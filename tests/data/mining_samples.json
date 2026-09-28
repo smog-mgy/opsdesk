@@ -1,0 +1,10 @@
+[
+  {
+    "conversation": "user: 你们费用怎么算啊\nassistant: 单笔工单报修响应,超时收取10元费用,偏远地区另计。",
+    "expect_question_contains": "费用"
+  },
+  {
+    "conversation": "user: 我的工单MH123到哪了\nassistant: 您的包裹在广州分拨中心,预计明天送达。",
+    "expect_empty": true
+  }
+]

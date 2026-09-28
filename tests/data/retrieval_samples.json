@@ -1,0 +1,22 @@
+[
+  {
+    "query": "响应时效是多少",
+    "expect_answer_contains": "响应"
+  },
+  {
+    "query": "设备报修流程怎么走",
+    "expect_answer_contains": "热线"
+  },
+  {
+    "query": "紧急故障怎么处理",
+    "expect_answer_contains": "P1"
+  },
+  {
+    "query": "巡检服务都包含什么",
+    "expect_answer_contains": "巡检"
+  },
+  {
+    "query": "夜班有人值班吗",
+    "expect_answer_contains": "值班"
+  }
+]
