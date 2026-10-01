@@ -18,7 +18,7 @@ async def submit_ticket(
     本工具只表示『这张工单可推进处理,已把提交入口交给用户』。
     发起人身份由系统注入,你不要传 user_id。"""
     # 写操作有二次确认门,但那道门确认的是「要不要推进」,不是「这单是不是你的」,归属得单独校验
-    if not owns_ticket(user_id, ticket_id):
+    if not await owns_ticket(user_id, ticket_id):
         return dict(NOT_OWNED)
     return {"status": "待用户确认", "ticket_id": ticket_id}
 

@@ -73,10 +73,10 @@ async def fetch_ticket(state) -> dict:
     uid = state.get("user_id", "")
     tid = state.get("ticket_id") or _extract_ticket_id(
         state.get("resolved_query") or _user_text(state))
-    while not business.owns_ticket(uid, str(tid or "")):
-        tickets = business.list_user_tickets(uid)                     # 只读,可安全重跑
+    while not await business.owns_ticket(uid, str(tid or "")):
+        tickets = await business.list_user_tickets(uid)                   # 只读,可安全重跑
         tid = interrupt({"type": "select_ticket", "tickets": tickets})  # resume 回填工单号
-    data = business.ticket_snapshot(tid)
+    data = await business.ticket_snapshot(tid)
     return {"ticket_id": tid, "ticket_data": data,
             "trace": {"fetch_ticket": {"ticket_id": tid}}}
 
@@ -360,7 +360,7 @@ async def agent_tools(state) -> dict:
         if tc["name"] == "submit_ticket":
             # submit_ticket 在这里就被拦成前端表单、不进执行引擎,所以工具内那道归属校验
             # 对它不生效,得在拦截之前判一次。不然处理确认入口就成了绕过校验的后门。
-            if not business.owns_ticket(uid, str(tc["args"].get("ticket_id") or "")):
+            if not await business.owns_ticket(uid, str(tc["args"].get("ticket_id") or "")):
                 not_owned = True
                 tool_msgs.append(ToolMessage(
                     content="没有找到这位用户的这笔工单,本次不提交处理确认。请如实告知没查到,"
@@ -392,13 +392,13 @@ async def agent_tools(state) -> dict:
         else:
             # 含参数缺失的 create_ticket(decision is None):引擎校验拦下,错误说明回灌
             run = await engine.execute_tool_call(tc, cid, specs, user_id=uid)
-            if tc["name"] == "query_ticket" and not business.owns_ticket(
+            if tc["name"] == "query_ticket" and not await business.owns_ticket(
                     uid, str((tc.get("args") or {}).get("ticket_id") or "")):
                 not_owned = True
             tool_msgs.append(run.tool_message)
     # 拒绝之后给一条出路:把他名下的工单亮出来点选,否则他既查不到,也不知道自己的单号是多少
     if not_owned:
-        actions.append({"type": "select_ticket", "tickets": business.list_user_tickets(uid)})
+        actions.append({"type": "select_ticket", "tickets": await business.list_user_tickets(uid)})
     out = {"messages": tool_msgs}
     if actions:
         out["suggested_actions"] = actions

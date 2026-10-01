@@ -19,9 +19,12 @@ async def query_ticket(
 ) -> dict:
     """查询工单的状态、优先级、处理进度、设备编号与故障信息。用于用户询问某张工单处理情况时。
     发起人身份由系统注入,你不要传 user_id。"""
-    if not owns_ticket(user_id, ticket_id):
+    if not await owns_ticket(user_id, ticket_id):
         return dict(NOT_OWNED)
-    return ticket_snapshot(ticket_id)
+    snap = await ticket_snapshot(ticket_id)
+    if snap is None:
+        return dict(NOT_OWNED)
+    return snap
 
 
 @tool

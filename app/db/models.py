@@ -50,6 +50,7 @@ class Faq(Base):
 
 
 class Ticket(Base):
+    """ch11 工程师工单处理闭环:状态四态可流转,处理人/备注/更新时间由工程师侧写入。"""
     __tablename__ = "tickets"
 
     ticket_no: Mapped[str] = mapped_column(String(32), primary_key=True)
@@ -59,9 +60,17 @@ class Ticket(Base):
     description: Mapped[str] = mapped_column(Text)
     ticket_type: Mapped[str] = mapped_column(Enum("报修", "投诉", "咨询", "处理确认"))
     status: Mapped[str] = mapped_column(
-        Enum("待处理", "已处理"), server_default="待处理"
+        Enum("待派单", "处理中", "待配件", "已解决"), server_default="待派单"
     )
+    priority: Mapped[str] = mapped_column(
+        Enum("P1", "P2", "P3"), server_default="P2"
+    )
+    handler: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    progress_note: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
 
 
 class KnowledgeChunk(Base):

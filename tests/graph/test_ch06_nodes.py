@@ -57,22 +57,43 @@ def test_extract_ticket_id():
 
 
 @pytest.mark.asyncio
-async def test_fetch_ticket_uses_id_in_query():
+async def test_fetch_ticket_uses_id_in_query(monkeypatch):
     uid = "u1"
-    mine = nodes.business.list_user_tickets(uid)[0]["ticket_id"]   # 话里报的得是他自己的单
-    out = await nodes.fetch_ticket({"resolved_query": f"工单{mine}处理到哪了", "user_id": uid})
-    assert out["ticket_id"] == mine
-    assert out["ticket_data"]["ticket_id"] == mine            # ticket_snapshot 同源
-    assert out["trace"]["fetch_ticket"]["ticket_id"] == mine
+
+    async def _owns(u, tid):
+        return True
+
+    async def _list(u):
+        return [{"ticket_id": "1001", "device": "M-1001 三相异步电机", "line": "1号总装线",
+                 "status": "待派单", "priority": "P2", "ticket_type": "报修",
+                 "description": "1号总装线 M-1001 电机过热"}]
+
+    async def _snap(tid):
+        return {"ticket_id": tid, "status": "待派单", "priority": "P2", "handler": "",
+                "progress_note": "", "description": "1号总装线 M-1001 电机过热",
+                "ticket_type": "报修", "submitted_at": "2026-10-01 08:30",
+                "updated_at": None, "device": "M-1001", "line": "1号总装线",
+                "fault_type": "", "assignee": ""}
+
+    monkeypatch.setattr(nodes.business, "owns_ticket", _owns)
+    monkeypatch.setattr(nodes.business, "list_user_tickets", _list)
+    monkeypatch.setattr(nodes.business, "ticket_snapshot", _snap)
+    out = await nodes.fetch_ticket({"resolved_query": "工单1001处理到哪了", "user_id": uid})
+    assert out["ticket_id"] == "1001"
+    assert out["ticket_data"]["ticket_id"] == "1001"            # ticket_snapshot 同源
+    assert out["trace"]["fetch_ticket"]["ticket_id"] == "1001"
 
 
 @pytest.mark.asyncio
 async def test_fetch_ticket_interrupts_when_missing(monkeypatch):
     # interrupt() 只能在编译图内跑(Task 1 冒烟 D:图外直接调是 RuntimeError),
     # 故缺单路径经最小编译图 + InMemorySaver ainvoke 测真实中断 surface。
-    monkeypatch.setattr(nodes.business, "list_user_tickets",
-                        lambda uid: [{"ticket_id": "1001", "device": "M-1001 三相异步电机", "status": "待派单",
-                        "priority": "P2", "fault_type": "电气故障"}])
+    async def _list(uid):
+        return [{"ticket_id": "1001", "device": "M-1001 三相异步电机", "line": "1号总装线",
+                 "status": "待派单", "priority": "P2", "ticket_type": "报修",
+                 "description": "1号总装线 M-1001 电机过热"}]
+
+    monkeypatch.setattr(nodes.business, "list_user_tickets", _list)
     from langgraph.checkpoint.memory import InMemorySaver
     from langgraph.graph import END, START, StateGraph
 
@@ -93,9 +114,16 @@ async def test_fetch_ticket_interrupts_when_missing(monkeypatch):
 async def test_fetch_order_报别人的单号也弹选择器(monkeypatch):
     # 处理确认子流程是确定性节点、不经 agent_tools,工具内那道归属校验够不着它。
     # 用户随口报一个别人的单号,不能照查,得跟「没给单号」一样落回选择器。
-    monkeypatch.setattr(nodes.business, "list_user_tickets",
-                        lambda uid: [{"ticket_id": "1001", "device": "M-1001 三相异步电机", "status": "待派单",
-                        "priority": "P2", "fault_type": "电气故障"}])
+    async def _owns(u, tid):
+        return False
+
+    monkeypatch.setattr(nodes.business, "owns_ticket", _owns)
+    async def _list(uid):
+        return [{"ticket_id": "1001", "device": "M-1001 三相异步电机", "line": "1号总装线",
+                 "status": "待派单", "priority": "P2", "ticket_type": "报修",
+                 "description": "1号总装线 M-1001 电机过热"}]
+
+    monkeypatch.setattr(nodes.business, "list_user_tickets", _list)
     from langgraph.checkpoint.memory import InMemorySaver
     from langgraph.graph import END, START, StateGraph
 
@@ -112,13 +140,17 @@ async def test_fetch_order_报别人的单号也弹选择器(monkeypatch):
     assert [o["ticket_id"] for o in payload["tickets"]] == ["1001"]
 
 
-def test_list_user_tickets_stable_and_queryable():
+@pytest.mark.asyncio
+async def test_list_user_tickets_stable_and_queryable(db_session_factory):
+    from app.db import repository
     from app.tools import business
-    a = business.list_user_tickets("u-42")
-    b = business.list_user_tickets("u-42")
-    assert a == b and len(a) >= 2                            # 同 user 稳定
-    snap = business.ticket_snapshot(a[0]["ticket_id"])
-    assert snap["ticket_id"] == a[0]["ticket_id"] and snap["device"] == a[0]["device"]
+    cid = await repository.create_conversation("u-42")
+    no1 = await repository.create_ticket(cid, "3号包装线 西门子空压机（PU-1002）上电后无法启动", "报修")
+    a = await business.list_user_tickets("u-42")
+    b = await business.list_user_tickets("u-42")
+    assert a == b and len(a) >= 1                            # 真库读取稳定
+    snap = await business.ticket_snapshot(no1)
+    assert snap["ticket_id"] == no1 and snap["status"] == "待派单"
 
 
 # ---- Task 8: retrieve_policy 扩写多查 + 去重合并 ----
@@ -156,9 +188,20 @@ async def test_retrieve_policy_expands_dedups_merges(monkeypatch):
     # ---- Task 9: submit_ticket 拦截 + _agent_messages 适配 ----
 
 @pytest.mark.asyncio
-async def test_agent_tools_intercepts_submit_ticket():
+async def test_agent_tools_intercepts_submit_ticket(monkeypatch):
     uid = "u1"
-    mine = nodes.business.list_user_tickets(uid)[0]["ticket_id"]
+    mine = "WO-2026-0001"
+
+    async def _owns(u, tid):
+        return True
+
+    async def _list(u):
+        return [{"ticket_id": mine, "device": "M-1001 三相异步电机", "line": "1号总装线",
+                 "status": "待派单", "priority": "P2", "ticket_type": "报修",
+                 "description": "1号总装线 M-1001 电机过热"}]
+
+    monkeypatch.setattr(nodes.business, "owns_ticket", _owns)
+    monkeypatch.setattr(nodes.business, "list_user_tickets", _list)
     ai = AIMessage(content="", tool_calls=[
         {"id": "r1", "name": "submit_ticket", "args": {"ticket_id": mine, "reason": None}}])
     out = await nodes.agent_tools({"messages": [ai], "user_id": uid})

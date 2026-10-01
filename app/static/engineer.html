@@ -1,0 +1,117 @@
+<!doctype html>
+
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>企业设备运维 · 工程师工单台</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><rect x='2' y='2' width='4' height='4' fill='%232b2632'/><rect x='10' y='2' width='4' height='4' fill='%232b2632'/><rect x='2' y='4' width='12' height='9' fill='%232b2632'/><rect x='3' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='11' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='3' y='5' width='10' height='7' fill='%23ff9f57'/><rect x='5' y='7' width='1' height='2' fill='%232b2632'/><rect x='10' y='7' width='1' height='2' fill='%232b2632'/><rect x='7' y='9' width='2' height='1' fill='%23ff8095'/></svg>" />
+  <link rel="stylesheet" href="/static/app-shell.css" />
+  <style>
+    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+    .filters .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filters button.tab {
+      border: 2px solid var(--ink); background: var(--paper); padding: 4px 10px;
+      font-size: 12.5px; cursor: pointer; color: var(--ink);
+    }
+    .filters button.tab.on { background: var(--ink); color: var(--cream); }
+    .filters input[type="text"] {
+      border: 2px solid var(--ink); background: var(--paper); padding: 5px 9px;
+      font-size: 12.5px; width: 220px; color: var(--ink);
+    }
+    table.tickets { margin-top: 14px; width: 100%; border-collapse: collapse; background: var(--paper); }
+    table.tickets th, table.tickets td {
+      border: 2px solid var(--ink); padding: 6px 8px; font-size: 12.5px;
+      text-align: left; vertical-align: top; color: var(--ink);
+    }
+    table.tickets th { background: var(--cream); }
+    table.tickets .desc { max-width: 260px; word-break: break-all; }
+    .pill {
+      display: inline-block; border: 2px solid var(--ink); padding: 1px 8px;
+      font-size: 11.5px; background: var(--paper); color: var(--ink); white-space: nowrap;
+    }
+    .pill.p1 { background: #ffe2e2; } .pill.p2 { background: #fff3d1; } .pill.p3 { background: #e4f0e6; }
+    .pill.s0 { background: #eee; } .pill.s1 { background: #d8ecf9; }
+    .pill.s2 { background: #fff3d1; } .pill.s3 { background: #d9f2d9; }
+    .pager { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 12.5px; color: var(--ink); }
+    .modal-mask {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: none;
+      align-items: center; justify-content: center; z-index: 50;
+    }
+    .modal-mask.open { display: flex; }
+    .modal {
+      background: var(--cream); border: 4px solid var(--ink); box-shadow: var(--shadow);
+      width: min(640px, 92vw); max-height: 86vh; overflow: auto; padding: 14px 16px 16px;
+    }
+    .modal h3 { margin: 0 0 10px; font-size: 16px; color: var(--ink); }
+    .kv { display: grid; grid-template-columns: 88px 1fr; gap: 6px 10px; font-size: 12.5px; margin-bottom: 10px; }
+    .kv dt { color: #6d6478; }
+    .kv dd { margin: 0; color: var(--ink); word-break: break-all; }
+    .form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .form-row label { font-size: 12.5px; color: var(--ink); }
+    .form-row select, .form-row input {
+      border: 2px solid var(--ink); background: var(--paper); padding: 5px 8px;
+      font-size: 12.5px; color: var(--ink);
+    }
+    .form-row input[type="text"] { width: 190px; }
+    .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+    .note-line { font-size: 11.5px; color: #6d6478; margin-top: 10px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>工程师工单台</h1>
+      <span class="sub">报修工单在 AI 对话页落库，到这里处理：改状态、填处理人/备注；AI 那边随时查得到最新进度</span>
+      <span class="spacer"></span>
+      <button class="btn" id="refreshBtn">刷新</button>
+    </div>
+
+    <div class="filters">
+      <span style="font-size:12.5px;color:#6d6478;">状态：</span>
+      <div class="seg" id="statusTabs"></div>
+      <input type="text" id="keyword" placeholder="工单号 / 问题描述关键词" />
+      <button class="btn" id="searchBtn">查</button>
+    </div>
+
+    <table class="tickets">
+      <thead>
+        <tr>
+          <th>工单号</th><th>类型</th><th>报修人</th><th>问题描述</th><th>优先级</th>
+          <th>状态</th><th>处理人</th><th>处理备注</th><th>报修时间</th><th>更新时间</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td class="miss">加载中…</td></tr></tbody>
+    </table>
+
+    <div class="pager" id="pager"></div>
+    <div class="note-line" id="wsNote">实时推送：连接中…</div>
+  </div>
+
+  <div class="modal-mask" id="mask">
+    <div class="modal">
+      <h3>处理工单 <span id="mNo" style="font-family:monospace;"></span></h3>
+      <dl class="kv" id="mDetail"></dl>
+      <div class="form-row">
+        <label>流转到</label>
+        <select id="mStatus"></select>
+        <label>处理人</label>
+        <input type="text" id="mHandler" placeholder="如：王工" />
+      </div>
+      <div class="form-row">
+        <label>处理备注</label>
+        <input type="text" id="mNote" placeholder="如：已更换变频器，待复测" style="width:100%;max-width:360px;" />
+      </div>
+      <div class="note-line" id="mHint"></div>
+      <div class="actions">
+        <button class="btn" id="mCancel">取消</button>
+        <button class="btn" id="mSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="/static/app-shell.js"></script>
+  <script src="/static/engineer.js"></script>
+</body>
+</html>

@@ -25,7 +25,7 @@ async def test_create_ticket_writes_and_flips_conversation_status(db_session_fac
     assert no.startswith("T")
     async with db_session_factory() as s:
         t = await s.get(Ticket, no)
-        assert t.ticket_type == "报修" and t.status == "待处理"
+        assert t.ticket_type == "报修" and t.status == "待派单"   # ch11 起默认待派单
         conv = await s.get(Conversation, cid)
         assert conv.status == "已转人工"          # 会话状态流转
 

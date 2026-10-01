@@ -12,6 +12,7 @@ from app.api.admin import router as admin_router
 from app.api.agent import router as agent_router
 from app.api.chat import router as chat_router
 from app.api.conversations import router as conversations_router
+from app.api.engineer import router as engineer_router
 from app.api.extract import router as extract_router
 from app.api.feedback import router as feedback_router
 from app.api.jobs import router as jobs_router
@@ -73,6 +74,7 @@ app.include_router(chat_router)
 app.include_router(extract_router)
 app.include_router(agent_router)
 app.include_router(conversations_router)
+app.include_router(engineer_router)
 app.include_router(feedback_router)
 app.include_router(review_router)
 app.include_router(topics_router)
@@ -96,6 +98,13 @@ async def admin_page() -> FileResponse:
     """后台管理首页:知识库、RAG 评估、飞轮待审、观测与成本、主题分布、分类器评估各一张卡,一处进出。
     各模块页面还是各自原本的路径,首页只把入口收到一起,文档里贴过的链接照样能用。"""
     return FileResponse(_STATIC_DIR / "admin.html")
+
+
+@app.get("/engineer", include_in_schema=False)
+async def engineer_page() -> FileResponse:
+    """ch11 工程师工单处理页:列表(分页/状态筛选/关键词)→改状态/填处理人/备注,
+    状态变更经 WebSocket 实时刷新;与 AI 对话页读同一张 tickets 表。"""
+    return FileResponse(_STATIC_DIR / "engineer.html")
 
 
 @app.get("/kb", include_in_schema=False)

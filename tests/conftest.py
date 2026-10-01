@@ -11,6 +11,8 @@ from app.config import settings
 
 _DDL_FILES = [
     pathlib.Path(__file__).resolve().parent.parent / "sql" / "ch02-ddl.sql",
+    # ch11 工程师工单处理闭环:依赖 ch02 的 tickets 表,紧随其后执行
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "ch11-engineer-ticket.sql",
     pathlib.Path(__file__).resolve().parent.parent / "sql" / "ch03-ddl.sql",
     # 挖知识加人工闸:给 qa_extraction_staging 的 status 补 approved/rejected 两个终态
     pathlib.Path(__file__).resolve().parent.parent / "sql" / "ch03-staging-review.sql",

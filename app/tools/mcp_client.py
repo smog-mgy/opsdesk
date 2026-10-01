@@ -39,11 +39,18 @@ def _fmt_spare_list(data: dict) -> str:
 
 
 def _fmt_ticket_ops(data: dict) -> str:
-    """工单流转返回:节点/处理人/预计完成。"""
+    """工单流转返回:状态/处理人/优先级/备注/更新时间(数据源 MySQL tickets,与工程师台同源)。"""
     if not data.get("found"):
         return f"未找到工单 {data.get('ticket_id')}"
-    return (f"工单 {data.get('ticket_id')} 当前{data.get('node')},"
-            f"处理人 {data.get('assignee')},预计 {data.get('eta')}")
+    parts = [f"工单 {data.get('ticket_id')} 当前{data.get('node')}",
+             f"处理人 {data.get('assignee')}"]
+    if data.get("priority"):
+        parts.append(f"优先级 {data['priority']}")
+    if data.get("detail"):
+        parts.append(f"备注 {data['detail']}")
+    if data.get("updated_at"):
+        parts.append(f"更新时间 {data['updated_at']}")
+    return "，".join(parts)
 
 
 # 结果格式化我们侧登记(挑回答用得上的字段 + 内部枚举码翻人话);未登记的 MCP 工具透传

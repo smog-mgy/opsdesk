@@ -1,10 +1,13 @@
-"""工单归属校验:工具只认「这一单是不是这个人的」,不认模型说了什么。
+"""工单归属校验(真库):工具只认「这一单是不是这个人的」,不认模型说了什么。
 
 为什么要有这组测试:query_ticket 早先只收 ticket_id,报个号就把单查出来念给用户听,
 这是最经典的越权访问(IDOR)。身份不能让模型填——用户自称是谁,模型就按谁处理——
-所以 user_id 走执行引擎注入,工具内部拿 user_id + ticket_id 双条件查。
+所以 user_id 走执行引擎注入,工具内部拿 user_id + ticket_no 双条件查。
+
+ch11 起数据源切真库:归属 = tickets 行经 conversation_id join conversations 取报修人。
 """
 import pytest
+import pytest_asyncio
 
 from app.tools import business
 from app.tools.builtin.tickets_query import query_ticket
@@ -14,65 +17,54 @@ USER = "u-alice"
 OTHER = "u-bob"
 
 
-def _own(uid: str) -> str:
-    """取这个用户的**私有**单(跳过每人都有的演示单),否则「别人的单」根本不成立。"""
-    return [o["ticket_id"] for o in business.list_user_tickets(uid)
-            if o["ticket_id"] not in business.DEMO_TICKET_IDS][0]
+@pytest_asyncio.fixture()
+async def alice_ticket(db_session_factory):
+    """在测试库里造一笔 alice 的真工单(私有单,别人名下查不到)。"""
+    from app.db import repository
+    cid = await repository.create_conversation(USER)
+    return await repository.create_ticket(cid, "1号总装线 M-1001 电机过热", "报修")
 
 
-def test_owns_ticket_只认自己名下的单():
-    mine = _own(USER)
-    assert business.owns_ticket(USER, mine) is True
-    assert business.owns_ticket(OTHER, mine) is False
+async def test_owns_ticket_只认自己名下的单(alice_ticket):
+    assert await business.owns_ticket(USER, alice_ticket) is True
+    assert await business.owns_ticket(OTHER, alice_ticket) is False
 
 
-def test_owns_ticket_空身份一律不放行():
+async def test_owns_ticket_空身份一律不放行(alice_ticket):
     # user_id 没注入到(空串)时不能当成「谁都行」,否则漏一个调用点就等于没做校验
-    assert business.owns_ticket("", _own(USER)) is False
+    assert await business.owns_ticket("", alice_ticket) is False
 
 
-async def test_查自己的工单照常返回():
-    mine = _own(USER)
-    out = await query_ticket.ainvoke({"ticket_id": mine, "user_id": USER})
-    assert out["ticket_id"] == mine
-    assert "fault_type" in out and out["fault_type"]          # 自己的单该给的字段一样不少
+async def test_查自己的工单照常返回(alice_ticket):
+    out = await query_ticket.ainvoke({"ticket_id": alice_ticket, "user_id": USER})
+    assert out["ticket_id"] == alice_ticket
+    assert out["status"] in {"待派单", "处理中", "待配件", "已解决"}
+    assert out["description"]
 
 
-async def test_查别人的工单被拒且不泄露任何字段():
-    his = _own(OTHER)
-    out = await query_ticket.ainvoke({"ticket_id": his, "user_id": USER})
+async def test_查别人的工单被拒且不泄露任何字段(alice_ticket):
+    out = await query_ticket.ainvoke({"ticket_id": alice_ticket, "user_id": OTHER})
     assert out.get("code") == "ticket_not_owned"
-    # 备件、设备、处理记录一个都不能漏出去(工单号能顺着查到资产归属)
-    for leaked in ("spare_no", "asset_no", "handler", "status", "created_at"):
-        assert leaked not in out
+    # 除了 error/code 两个键,工单任何信息都不能漏(工单号能顺着查到资产归属)
+    assert set(out.keys()) == {"error", "code"}
 
 
-async def test_不存在的单和别人的单回同一句话():
+async def test_不存在的单和别人的单回同一句话(alice_ticket):
     # 两种情况回不同的话就成了枚举 oracle:攻击者靠回答差异就能挨个试出哪些单真实存在
-    his = await query_ticket.ainvoke({"ticket_id": _own(OTHER), "user_id": USER})
+    his = await query_ticket.ainvoke({"ticket_id": alice_ticket, "user_id": OTHER})
     nobody = await query_ticket.ainvoke({"ticket_id": "999999", "user_id": USER})
     assert his["error"] == nobody["error"]
     assert his["code"] == nobody["code"] == "ticket_not_owned"
 
 
-async def test_处理确认也过同一道校验():
+async def test_处理确认也过同一道校验(alice_ticket):
     # 写操作有二次确认门,但确认的是「要不要退」,不是「这单是不是你的」
     out = await submit_ticket.ainvoke(
-        {"ticket_id": _own(OTHER), "reason": "设备已恢复,确认处理", "user_id": USER})
+        {"ticket_id": alice_ticket, "reason": "设备已恢复,确认处理", "user_id": OTHER})
     assert out.get("code") == "ticket_not_owned"
 
 
 @pytest.mark.parametrize("bad", ["", None])
-async def test_身份缺失时读写都拒(bad):
-    mine = _own(USER)
-    out = await query_ticket.ainvoke({"ticket_id": mine, "user_id": bad or ""})
+async def test_身份缺失时读写都拒(bad, alice_ticket):
+    out = await query_ticket.ainvoke({"ticket_id": alice_ticket, "user_id": bad or ""})
     assert out.get("code") == "ticket_not_owned"
-
-
-def test_演示单每个账号都有():
-    # 文档和评估脚本里到处写着 1001,让它对谁都成立,例子才拿来即跑;
-    # 归属校验要看的是私有单那部分
-    for uid in (USER, OTHER, "u-随便一个人"):
-        for demo in business.DEMO_TICKET_IDS:
-            assert business.owns_ticket(uid, demo) is True
-    assert business.owns_ticket(USER, _own(OTHER)) is False

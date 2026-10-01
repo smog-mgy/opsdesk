@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import case, func, select, update
+from sqlalchemy import case, func, or_, select, update
 
 import app.db.base as db          # 用模块属性引用,便于测试 monkeypatch async_session
 from app.db.models import (
@@ -85,6 +85,116 @@ async def create_ticket(conversation_id: int, description: str, ticket_type: str
             conv.status = "已转人工"
         await s.commit()
     return ticket_no
+
+
+# ---- ch11 工程师工单处理闭环(真库读写)----
+# 工单数据从 mock 切换为 MySQL 真库:报修人经 conversation_id join conversations 取得。
+# 查询/更新均走这里,graph 节点与 builtin 工具共用同一数据源。
+
+
+def _ticket_row(t: Ticket, user_id: str | None) -> dict:
+    return {
+        "ticket_no": t.ticket_no,
+        "ticket_type": t.ticket_type,
+        "description": t.description,
+        "status": t.status,
+        "priority": t.priority,
+        "handler": t.handler,
+        "progress_note": t.progress_note,
+        "created_at": t.created_at.isoformat() if t.created_at else None,
+        "updated_at": t.updated_at.isoformat() if t.updated_at else None,
+        "user_id": user_id,
+    }
+
+
+async def list_tickets(
+    page: int = 1,
+    size: int = 20,
+    status: str | None = None,
+    keyword: str | None = None,
+) -> tuple[list[dict], int]:
+    """工程师侧工单列表:分页 + 状态筛选 + 关键词(ticket_no/描述)。join 会话带出报修人。"""
+    page, size = max(1, page), min(max(1, size), 100)
+    async with db.async_session() as s:
+        q = (
+            select(Ticket, Conversation.user_id)
+            .join(Conversation, Conversation.id == Ticket.conversation_id)
+        )
+        if status:
+            q = q.where(Ticket.status == status)
+        if keyword:
+            like = f"%{keyword}%"
+            q = q.where(or_(Ticket.ticket_no.like(like), Ticket.description.like(like)))
+        total = int((await s.execute(select(func.count()).select_from(q.subquery()))).scalar_one())
+        q = q.order_by(Ticket.created_at.desc()).offset((page - 1) * size).limit(size)
+        rows = (await s.execute(q)).all()
+        return [_ticket_row(t, uid) for t, uid in rows], total
+
+
+async def list_user_tickets(user_id: str) -> list[dict]:
+    """按报修人列出该用户的全部工单(真库,created_at 倒序)。用户为空返回空列表。"""
+    if not user_id:
+        return []
+    async with db.async_session() as s:
+        rows = (
+            await s.execute(
+                select(Ticket, Conversation.user_id)
+                .join(Conversation, Conversation.id == Ticket.conversation_id)
+                .where(Conversation.user_id == user_id)
+                .order_by(Ticket.created_at.desc())
+            )
+        ).all()
+        return [_ticket_row(t, uid) for t, uid in rows]
+
+
+async def get_ticket(ticket_no: str) -> dict | None:
+    """工单详情(join 报修人)。查不到返回 None。"""
+    async with db.async_session() as s:
+        row = (
+            await s.execute(
+                select(Ticket, Conversation.user_id)
+                .join(Conversation, Conversation.id == Ticket.conversation_id)
+                .where(Ticket.ticket_no == ticket_no)
+            )
+        ).first()
+        if row is None:
+            return None
+        t, uid = row
+        return _ticket_row(t, uid)
+
+
+async def get_ticket_owner(ticket_no: str) -> str | None:
+    """工单归属的报修人 user_id:query_ticket 归属校验用。查不到返回 None。"""
+    async with db.async_session() as s:
+        return await s.scalar(
+            select(Conversation.user_id)
+            .join(Ticket, Ticket.conversation_id == Conversation.id)
+            .where(Ticket.ticket_no == ticket_no)
+        )
+
+
+async def update_ticket_status(
+    ticket_no: str,
+    status: str,
+    handler: str | None = None,
+    progress_note: str | None = None,
+) -> dict | None:
+    """工程师更新工单状态/处理人/备注。返回更新后的行;工单不存在返回 None。"""
+    async with db.async_session() as s:
+        t = await s.get(Ticket, ticket_no)
+        if t is None:
+            return None
+        t.status = status
+        if handler is not None:
+            t.handler = handler or None
+        if progress_note is not None:
+            t.progress_note = progress_note or None
+        await s.commit()
+        await s.refresh(t)
+        uid = await s.scalar(
+            select(Conversation.user_id).where(Conversation.id == t.conversation_id)
+        )
+        return _ticket_row(t, uid)
 
 
 # ---- ch07 会话上下文管理(滑窗 + 异步摘要)----

@@ -103,7 +103,18 @@ async def test_agent_tools_still_intercepts_submit_ticket(monkeypatch, builtin_o
 
     monkeypatch.setattr(nodes.engine, "execute_tool_call", fake_exec)
     uid = "u-agent"
-    mine = nodes.business.list_user_tickets(uid)[0]["ticket_id"]   # 得是他自己的单才拦成表单
+    mine = "WO-2026-0001"                                        # 得是他自己的单才拦成表单
+
+    async def _owns(u, tid):
+        return True
+
+    async def _list(u):
+        return [{"ticket_id": mine, "device": "M-1001 三相异步电机", "line": "1号总装线",
+                 "status": "待派单", "priority": "P2", "ticket_type": "报修",
+                 "description": "1号总装线 M-1001 电机过热"}]
+
+    monkeypatch.setattr(nodes.business, "owns_ticket", _owns)
+    monkeypatch.setattr(nodes.business, "list_user_tickets", _list)
     ai = AIMessage("", tool_calls=[{"name": "submit_ticket",
                     "args": {"ticket_id": mine}, "id": "t8"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5, "user_id": uid})
@@ -119,9 +130,19 @@ async def test_处理确认不给别人的单开表单入口(monkeypatch, builti
 
     monkeypatch.setattr(nodes.engine, "execute_tool_call", fake_exec)
     uid, other = "u-agent", "u-someone-else"
-    # 得挑对方的**私有**单:演示单(1001/2002)每个账号都有,拿它当「别人的单」不成立
-    his = [o["ticket_id"] for o in nodes.business.list_user_tickets(other)
-           if o["ticket_id"] not in nodes.business.DEMO_TICKET_IDS][0]
+    # 挑对方的单:归属校验一律不认(真库语义由 tools 层测试覆盖,这里只验节点拦截)
+    his = "WO-2026-9999"
+
+    async def _owns(u, tid):
+        return False
+
+    async def _list(u):
+        return [{"ticket_id": "WO-2026-0001", "device": "M-1001 三相异步电机", "line": "1号总装线",
+                 "status": "待派单", "priority": "P2", "ticket_type": "报修",
+                 "description": "1号总装线 M-1001 电机过热"}]
+
+    monkeypatch.setattr(nodes.business, "owns_ticket", _owns)
+    monkeypatch.setattr(nodes.business, "list_user_tickets", _list)
     ai = AIMessage("", tool_calls=[{"name": "submit_ticket",
                     "args": {"ticket_id": his}, "id": "t9"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5, "user_id": uid})
